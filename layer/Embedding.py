@@ -10,7 +10,6 @@ class TokenEmbedding(nn.Module):
     def forward(self, x):
         embedded = self.embedding(x)
         return embedded
-    
 
 class PositionalEmbedding(nn.Module):
     def __init__(self, max_len, hidden_size):

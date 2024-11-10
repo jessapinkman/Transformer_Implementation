@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from MultiHeadAttention import MultiHeadAttention
+from .MultiHeadAttention import MultiHeadAttention
+from .Embedding import PositionalEmbedding, TokenEmbedding
 
 class EncoderLayer(nn.Module):
     def __init__(self, hidden_size, num_heads, ff_size, dropout_prob=0.1):

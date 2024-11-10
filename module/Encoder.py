@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from layer.EncoderLayer import EncoderLayer
+from layer.Embedding import PositionalEmbedding, TokenEmbedding
 import sys
 import os
 
@@ -13,18 +14,21 @@ class Encoder(nn.Module):
 
         # 堆叠多个encoderlayer
         self.layers = nn.ModuleList([
-            EncoderLayer(hidden_size, num_heads, ff_size, num_layers, dropout_prob)
+            EncoderLayer(hidden_size, num_heads, ff_size, dropout_prob)
             for _ in range(num_layers)
         ])
 
-        # 位置编码
-        self.positional_encoding = nn.Embedding(20000, hidden_size)
+        # token、positional embedding
+        self.token_embedding = TokenEmbedding(20000, hidden_size)
+        self.positional_encoding = PositionalEmbedding(20000, hidden_size)
+        # self.positional_encoding = nn.Embedding(20000, hidden_size)
+
 
     def forward(self, x, mask=None):
         # x's shape: (bs, seq_len, hidden_size)
         
         # 1. 引入位置编码
-        x = x + self.positional_encoding(torch.arange(x.size(1), device=x.device))
+        x = self.token_embedding(x) + self.positional_encoding(torch.arange(x.size(1), device=x.device))
 
         # 2. 堆叠 encoderlayer
         for layer in self.layers:
