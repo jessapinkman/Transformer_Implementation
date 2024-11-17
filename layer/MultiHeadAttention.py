@@ -7,7 +7,7 @@ class MultiHeadAttention(torch.nn.Module):
         self.hidden_size = hidden_size # d_model in paper
         self.num_heads = num_heads  # 8 in paper
         self.head_dim = hidden_size // num_heads # 每个头的维度，二者必须整除 dk in paper
-
+        print(self.head_dim, self.num_heads, self.hidden_size)
         # 初始化qkv的投影矩阵，将输入词向量线性变换为Q、K、V，要求维度保持一致
         self.q_proj = nn.Linear(hidden_size, hidden_size)
         self.k_proj = nn.Linear(hidden_size, hidden_size)
@@ -30,9 +30,9 @@ class MultiHeadAttention(torch.nn.Module):
 
         # 2. 切分Q, K, V
         # (bs, num_heads, seq_len, head_dim)
-        q = q.view(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
-        k = k.view(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
-        v = v.view(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+        q = q.reshape(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+        k = k.reshape(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
+        v = v.reshape(hidden_state.size(0), -1, self.num_heads, self.head_dim).permute(0, 2, 1, 3)
         # q = self.spilt_head(q)
 
         # 3. 计算注意力分数
