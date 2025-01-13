@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.nn.modules.utils import to_2tuple
 import math
 
 class TokenEmbedding(nn.Module):
@@ -45,6 +46,37 @@ class PositionalEmbedding(nn.Module):
         x = x + self.pe[:seq_len, :].unsqueeze(0)
         
         # 返回加上位置编码后的张量
+        return x
+    
+class VitEmbedding(nn.Module):
+    """ Image to Patch Embedding 
+        Vit的图像块嵌入实现，patch embeddings
+        可参照：https://blog.csdn.net/lsb2002/article/details/135320751  or  https://blog.csdn.net/qq_39478403/article/details/118704747
+    """
+    def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768):
+        super().__init__()
+        # (H, W)
+        img_size = to_2tuple(img_size)
+        patch_size = to_2tuple(patch_size)
+        # N = (H // P) * (W // P)
+        num_patches = (img_size[1] // patch_size[1]) * (img_size[0] // patch_size[0])
+        
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.num_patches = num_patches
+
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+
+        assert H == self.img_size[0] and W ==self.img_size[1], \
+        f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
+
+        # (B, C, H, W) -> (B, D, (H//P), (W//P)) -> (B, D, N) -> (B, N, D)
+        #   D=embed_dim=768, N=num_patches=(H//P)*(W//P)
+        #   torch.flatten(input, start_dim=0, end_dim=-1)  # 形参：展平的起始维度和结束维度    
+        x = self.proj(x).flatten(2).transpose(1,2)
         return x
     
 # 测试 PositionalEmbedding 的函数
